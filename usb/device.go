@@ -107,15 +107,18 @@ func (d *Device) SetConfig(cfg uint8) error {
 
 // Close the device.
 func (d *Device) Close() error {
+	fmt.Print("0\n")
 	if d.handle == nil {
 		return fmt.Errorf("usb: double close on device")
 	}
 	d.lock.Lock()
 	defer d.lock.Unlock()
-	for iface := range d.claimed {
-		C.libusb_release_interface(d.handle, C.int(iface))
-	}
+	// for iface := range d.claimed {
+	// 	C.libusb_release_interface(d.handle, C.int(iface))
+	// }
+	fmt.Print("1\n")
 	C.libusb_close(d.handle)
+	fmt.Print("2\n")
 	d.handle = nil
 	return nil
 }
@@ -184,9 +187,11 @@ found:
 	}
 
 	// Enable auto detachment of kernel driver if platform supported
-	if errno := C.libusb_set_auto_detach_kernel_driver(d.handle, C.int(1)); errno < 0 && errno != C.LIBUSB_ERROR_NOT_SUPPORTED {
+	// if errno := C.libusb_kernel_driver_active(d.handle, C.int(iface)); errno == 1 {
+	if errno := C.libusb_set_auto_detach_kernel_driver(d.handle, C.int(iface)); errno != 0 {
 		return nil, fmt.Errorf("usb: detachkrndrv: %s", usbError(errno))
 	}
+	// }
 
 	// Claim the interface
 	if errno := C.libusb_claim_interface(d.handle, C.int(iface)); errno < 0 {
