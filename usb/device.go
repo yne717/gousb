@@ -184,10 +184,9 @@ found:
 	}
 
 	// Enable auto detachment of kernel driver if platform supported
-	if errno := C.libusb_kernel_driver_active(d.handle, C.int(iface)); errno == 1 {
-		if errno := C.libusb_set_auto_detach_kernel_driver(d.handle, C.int(iface)); errno != 0 {
-			return nil, fmt.Errorf("usb: detachkrndrv: %s", usbError(errno))
-		}
+	if errno := C.libusb_set_auto_detach_kernel_driver(d.handle, C.int(1));
+		errno < 0 && errno != C.LIBUSB_ERROR_NOT_SUPPORTED {
+		return nil, fmt.Errorf("usb: detachkrndrv: %s", usbError(errno))
 	}
 
 	// Claim the interface
